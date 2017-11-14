@@ -20,7 +20,7 @@ RUN dpkg --add-architecture i386 && \
 
 # ------------------------------------------------------
 # --- Download Android SDK tools into $ANDROID_HOME
-RUN cd /opt && wget -q https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip -O android-sdk-tools.zip && \
+RUN cd /opt && wget -q https://dl.google.com/android/repository/sdk-tools-linux-3859397.zip -O android-sdk-tools.zip && \
     unzip -q android-sdk-tools.zip && mkdir -p ${ANDROID_HOME} && mv tools/ ${ANDROID_HOME}/tools/ && \
     rm -f android-sdk-tools.zip
 
@@ -83,9 +83,9 @@ RUN yes | ${ANDROID_HOME}/tools/bin/sdkmanager \
 #RUN echo y | android update sdk --use-sdk-wrapper --no-ui --all --filter sys-img-armeabi-v7a-android-21
 
 # Extras
-RUN echo y | android update sdk --use-sdk-wrapper --no-ui --all --filter extra-android-m2repository
-RUN echo y | android update sdk --use-sdk-wrapper --no-ui --all --filter extra-google-m2repository
-RUN echo y | android update sdk --use-sdk-wrapper --no-ui --all --filter extra-google-google_play_services
+RUN yes | sdkmanager "extras;android;m2repository"
+RUN yes | sdkmanager "extras;google;m2repository"
+RUN yes | sdkmanager "extras;google;google_play_services"
 
 # google apis
 # Please keep these in descending order!
