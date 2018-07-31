@@ -1,11 +1,42 @@
 FROM jenkins/jnlp-slave
-#FROM bitriseio/docker-bitrise-base-alpha:latest
+
+USER root
+
+# replace shell with bash so we can source files
+RUN rm /bin/sh && ln -s /bin/bash /bin/sh
+
+# update the repository sources list
+# and install dependencies
+RUN apt-get update \
+    && apt-get install -y curl \
+    && apt-get -y autoclean
+
+# nvm environment variables
+ENV NVM_DIR /usr/local/nvm
+ENV NODE_VERSION 8.3.0
+
+# install nvm
+# https://github.com/creationix/nvm#install-script
+RUN curl --silent -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.2/install.sh | bash
+
+# install node and npm
+RUN source $NVM_DIR/nvm.sh \
+    && nvm install $NODE_VERSION \
+    && nvm alias default $NODE_VERSION \
+    && nvm use default
+
+# add node and npm to path so the commands are available
+ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
+ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
+
+# confirm installation
+RUN node -v
+RUN npm -v
 
 ENV ANDROID_HOME /opt/android-sdk-linux
 
 # ------------------------------------------------------
 # --- Install required tools
-USER root
 
 # Dependencies to execute Android builds
 RUN dpkg --add-architecture i386 && \
@@ -73,16 +104,5 @@ RUN apt-get -y purge maven && \
     apt-get -y install maven && \
     mvn --version && \
     rm -rf /var/lib/apt/lists/*
-
-# ------------------------------------------------------
-# --- Install Fastlane
-#RUN gem install fastlane --no-document
-#RUN fastlane --version
-
-# fix HOME root env variables for android emulator plugin...
-#WORKDIR /root
-#ENV HOME /root
-#RUN usermod -d /root jenkins && chown -R jenkins:root /root && \
-#    chown -R jenkins:jenkins $ANDROID_HOME && chmod -R g+w $ANDROID_HOME
 
 CMD bitrise -version
