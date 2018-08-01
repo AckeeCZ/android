@@ -1,5 +1,4 @@
 FROM jenkins/jnlp-slave
-#FROM bitriseio/docker-bitrise-base-alpha:latest
 
 USER root
 
@@ -52,8 +51,8 @@ RUN cd /opt && wget -q https://dl.google.com/android/repository/sdk-tools-linux-
     rm -f android-sdk-tools.zip
 
 # ndk-bundle
-#RUN cd $ANDROID_HOME && wget -q https://dl.google.com/android/repository/android-ndk-r15c-linux-x86_64.zip -O ndk-bundle.zip && \
-#    unzip -q ndk-bundle.zip && mv android-ndk-r15c ndk-bundle && chown -R jenkins:jenkins ndk-bundle/
+RUN cd $ANDROID_HOME && wget -q https://dl.google.com/android/repository/android-ndk-r15c-linux-x86_64.zip -O ndk-bundle.zip && \
+    unzip -q ndk-bundle.zip && mv android-ndk-r15c ndk-bundle && chown -R jenkins:jenkins ndk-bundle/
 
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
 
@@ -105,16 +104,5 @@ RUN apt-get -y purge maven && \
     apt-get -y install maven && \
     mvn --version && \
     rm -rf /var/lib/apt/lists/*
-
-# ------------------------------------------------------
-# --- Install Fastlane
-#RUN gem install fastlane --no-document
-#RUN fastlane --version
-
-# fix HOME root env variables for android emulator plugin...
-#WORKDIR /root
-#ENV HOME /root
-#RUN usermod -d /root jenkins && chown -R jenkins:root /root && \
-#    chown -R jenkins:jenkins $ANDROID_HOME && chmod -R g+w $ANDROID_HOME
-
+    
 CMD bitrise -version
