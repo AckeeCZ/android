@@ -5,9 +5,7 @@ USER root
 # update the repository sources list
 # and install dependencies
 RUN apt-get update \
-    && apt-get install -y curl \
-    && apt-get -y autoclean \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y curl 
 
 # nvm environment variables
 ENV NVM_DIR /usr/local/nvm
@@ -41,8 +39,7 @@ ENV ANDROID_HOME /opt/android-sdk-linux
 # Dependencies to execute Android builds
 RUN dpkg --add-architecture i386 && \
     apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-8-jdk libc6:i386 libstdc++6:i386 libgcc1:i386 libncurses5:i386 libz1:i386 || apt-get install -f && \
-    rm -rf /var/lib/apt/lists/*
+    DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-8-jdk libc6:i386 libstdc++6:i386 libgcc1:i386 libncurses5:i386 libz1:i386 || apt-get install -f
 
 # ------------------------------------------------------
 # --- Download Android SDK tools into $ANDROID_HOME
@@ -91,18 +88,16 @@ RUN yes | sdkmanager "extras;android;m2repository" \
 # --- Install Gradle from PPA
 
 # Gradle PPA
-RUN apt-get update && \
-    apt-get -y install gradle && \
-    gradle -v && \
-    rm -rf /var/lib/apt/lists/*
+RUN apt-get -y install gradle && \
+    gradle -v
 
 # ------------------------------------------------------
 # --- Install Maven 3 from PPA
 
 RUN apt-get -y purge maven && \
-    apt-get update && \
     apt-get -y install maven && \
     mvn --version && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get -y autoclean && \
+    rm -rf /var/lib/apt/lists/* 
     
 CMD bitrise -version
