@@ -22,6 +22,9 @@ RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud
   /opt/google-cloud-sdk/install.sh -q > /dev/null 2>&1 && \
   /opt/google-cloud-sdk/bin/gcloud config set component_manager/disable_update_check true > /dev/null 2>&1
 
+# add gcloud SDK to path
+ENV PATH="${PATH}:/opt/google-cloud-sdk/bin/"
+
 # install nvm
 # https://github.com/creationix/nvm#install-script
 RUN curl --silent -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.2/install.sh | bash
@@ -113,5 +116,6 @@ RUN apt-get -y purge maven && \
     apt-get -y install maven && \
     mvn --version && \
     rm -rf /var/lib/apt/lists/*
-    
-CMD bitrise -version
+
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
