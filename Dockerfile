@@ -9,6 +9,8 @@ RUN apt-get update \
     && apt-get -y autoclean \
     && rm -rf /var/lib/apt/lists/*
 
+RUN curl -sSL https://get.docker.com/ | sh
+
 # nvm environment variables
 ENV NVM_DIR /usr/local/nvm
 ENV NODE_VERSION 8.3.0
