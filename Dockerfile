@@ -2,28 +2,34 @@ FROM jenkins/jnlp-slave
 
 USER root
 
-# update the repository sources list
-# and install dependencies
-RUN apt-get update \
-    && apt-get install -y curl \
-    && apt-get -y autoclean \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y \
+    curl \
+    gradle \
+    maven
 
+# Dependencies to execute Android builds
+RUN dpkg --add-architecture i386 && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    libc6:i386 \
+    libgcc1:i386 \
+    libncurses5:i386 \
+    libstdc++6:i386 \
+    libz1:i386 \
+    openjdk-8-jdk
+
+# Install Docker
 RUN curl -sSL https://get.docker.com/ | sh
 
 # nvm environment variables
-ENV NVM_DIR /usr/local/nvm
-ENV NODE_VERSION 8.3.0
+ENV NVM_DIR=/usr/local/nvm \
+    NODE_VERSION=8.3.0
 
 # install gcloud
-RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-230.0.0-linux-x86_64.tar.gz -O g.tar.gz > /dev/null 2>&1 && \
-  tar -xvf g.tar.gz > /dev/null 2>&1 && \
-  rm -rf g.tar.gz && \
-  mkdir -p /opt && \
-  mv google-cloud-sdk /opt/google-cloud-sdk && \
-  /opt/google-cloud-sdk/install.sh -q > /dev/null 2>&1 && \
-  /opt/google-cloud-sdk/bin/gcloud config set component_manager/disable_update_check true > /dev/null 2>&1
-
+RUN wget -q https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-230.0.0-linux-x86_64.tar.gz -O g.tar.gz && \
+    tar xf g.tar.gz && \
+    rm g.tar.gz && \
+    mv google-cloud-sdk /opt/google-cloud-sdk && \
+    /opt/google-cloud-sdk/install.sh -q && \
+    /opt/google-cloud-sdk/bin/gcloud config set component_manager/disable_update_check true
 # add gcloud SDK to path
 ENV PATH="${PATH}:/opt/google-cloud-sdk/bin/"
 
@@ -34,42 +40,27 @@ RUN curl --silent -o- https://raw.githubusercontent.com/creationix/nvm/v0.31.2/i
 SHELL ["/bin/bash", "-c"]
 
 # install node and npm
-RUN source $NVM_DIR/nvm.sh \
-    && nvm install $NODE_VERSION \
-    && nvm alias default $NODE_VERSION \
-    && nvm use default
+RUN source $NVM_DIR/nvm.sh && \
+    nvm install $NODE_VERSION && \
+    nvm alias default $NODE_VERSION && \
+    nvm use default
 
 # add node and npm to path so the commands are available
-ENV NODE_PATH $NVM_DIR/v$NODE_VERSION/lib/node_modules
-ENV PATH $NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
-
-# confirm installation
-RUN node -v
-RUN npm -v
+ENV NODE_PATH=$NVM_DIR/v$NODE_VERSION/lib/node_modules \
+    PATH=$NVM_DIR/versions/node/v$NODE_VERSION/bin:$PATH
 
 ENV ANDROID_HOME /opt/android-sdk-linux
 
-# ------------------------------------------------------
-# --- Install required tools
-
-# Dependencies to execute Android builds
-RUN dpkg --add-architecture i386 && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y openjdk-8-jdk libc6:i386 libstdc++6:i386 libgcc1:i386 libncurses5:i386 libz1:i386 || apt-get install -f && \
-    rm -rf /var/lib/apt/lists/*
-
-# ------------------------------------------------------
-# --- Download Android SDK tools into $ANDROID_HOME
+# Download Android SDK tools into $ANDROID_HOME
 RUN cd /opt && wget -q https://dl.google.com/android/repository/sdk-tools-linux-4333796.zip -O android-sdk-tools.zip && \
     unzip -q android-sdk-tools.zip && mkdir -p ${ANDROID_HOME} && mv tools/ ${ANDROID_HOME}/tools/ && \
     rm -f android-sdk-tools.zip
 
 # ndk-bundle
 RUN cd $ANDROID_HOME && wget -q https://dl.google.com/android/repository/android-ndk-r15c-linux-x86_64.zip -O ndk-bundle.zip && \
-    unzip -q ndk-bundle.zip && mv android-ndk-r15c ndk-bundle && chown -R jenkins:jenkins ndk-bundle/
+    unzip -q ndk-bundle.zip && mv android-ndk-r15c ndk-bundle && rm -r ndk-bundle.zip && chown -R jenkins:jenkins ndk-bundle/
 
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
-
 
 # Accept licenses before installing components, no need to echo y for each component
 # License is valid for all the standard components in versions installed from this file
@@ -82,10 +73,10 @@ RUN sdkmanager "platform-tools"
 # Emulator
 # RUN sdkmanager "emulator"
 # For now we'll keep using 26.1.2 ; 26.1.3 had some booting issues...
-RUN cd /opt \
- && wget https://dl.google.com/android/repository/emulator-linux-4077558.zip -O emulator.zip \
- && unzip -q emulator.zip -d ${ANDROID_HOME} \
- && rm emulator.zip
+RUN cd /opt && \
+    wget -q https://dl.google.com/android/repository/emulator-linux-4077558.zip -O emulator.zip && \
+    unzip -q emulator.zip -d ${ANDROID_HOME} && \
+    rm emulator.zip
 
 # Please keep all sections in descending order!
 # list all platforms, sort them in descending order, take the newest 8 versions and install them
@@ -100,24 +91,6 @@ RUN yes | sdkmanager "extras;android;m2repository" \
     "add-ons;addon-google_apis-google-23" \
     "add-ons;addon-google_apis-google-22" \
     "add-ons;addon-google_apis-google-21"
-
-# ------------------------------------------------------
-# --- Install Gradle from PPA
-
-# Gradle PPA
-RUN apt-get update && \
-    apt-get -y install gradle && \
-    gradle -v && \
-    rm -rf /var/lib/apt/lists/*
-
-# ------------------------------------------------------
-# --- Install Maven 3 from PPA
-
-RUN apt-get -y purge maven && \
-    apt-get update && \
-    apt-get -y install maven && \
-    mvn --version && \
-    rm -rf /var/lib/apt/lists/*
 
 COPY entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
