@@ -57,8 +57,8 @@ RUN cd /opt && wget -q https://dl.google.com/android/repository/sdk-tools-linux-
     rm -f android-sdk-tools.zip
 
 # ndk-bundle
-RUN cd $ANDROID_HOME && wget -q https://dl.google.com/android/repository/android-ndk-r21-linux-x86_64.zip -O ndk-bundle.zip && \
-    unzip -q ndk-bundle.zip && mv android-ndk-r21 ndk-bundle && rm -r ndk-bundle.zip && chown -R jenkins:jenkins ndk-bundle/
+RUN cd $ANDROID_HOME && wget -q https://dl.google.com/android/repository/android-ndk-r21b-linux-x86_64.zip -O ndk-bundle.zip && \
+    unzip -q ndk-bundle.zip && mv android-ndk-r21b ndk-bundle && rm -r ndk-bundle.zip && chown -R jenkins:jenkins ndk-bundle/
 
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
 
