@@ -13,8 +13,7 @@ RUN dpkg --add-architecture i386 && apt-get update && DEBIAN_FRONTEND=noninterac
     libgcc1:i386 \
     libncurses5:i386 \
     libstdc++6:i386 \
-    libz1:i386 \
-    openjdk-8-jdk
+    libz1:i386
 
 # Install Docker
 RUN curl -sSL https://get.docker.com/ | sh
