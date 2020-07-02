@@ -55,10 +55,6 @@ RUN cd /opt && wget -q https://dl.google.com/android/repository/sdk-tools-linux-
     unzip -q android-sdk-tools.zip && mkdir -p ${ANDROID_HOME} && mv tools/ ${ANDROID_HOME}/tools/ && \
     rm -f android-sdk-tools.zip
 
-# ndk-bundle
-RUN cd $ANDROID_HOME && wget -q https://dl.google.com/android/repository/android-ndk-r21b-linux-x86_64.zip -O ndk-bundle.zip && \
-    unzip -q ndk-bundle.zip && mv android-ndk-r21b ndk-bundle && rm -r ndk-bundle.zip && chown -R jenkins:jenkins ndk-bundle/
-
 ENV PATH ${PATH}:${ANDROID_HOME}/tools:${ANDROID_HOME}/tools/bin:${ANDROID_HOME}/platform-tools
 
 # Accept licenses before installing components, no need to echo y for each component
@@ -76,6 +72,9 @@ RUN cd /opt && \
     wget -q https://dl.google.com/android/repository/emulator-linux-4077558.zip -O emulator.zip && \
     unzip -q emulator.zip -d ${ANDROID_HOME} && \
     rm emulator.zip
+    
+# NDK (side-by-side)
+RUN sdkmanager --install "ndk;21.0.6113669" "ndk;21.1.6352462" "cmake;3.10.2.4988404"
 
 # Please keep all sections in descending order!
 # list all platforms, sort them in descending order, take the newest 8 versions and install them
