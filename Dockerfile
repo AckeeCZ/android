@@ -74,7 +74,7 @@ RUN cd /opt && \
     rm emulator.zip
     
 # NDK (side-by-side)
-RUN sdkmanager --install "ndk;21.0.6113669" "ndk;21.1.6352462"
+RUN sdkmanager --install "ndk;21.0.6113669" "ndk;21.1.6352462" "cmake;3.10.2.4988404"
 
 # Please keep all sections in descending order!
 # list all platforms, sort them in descending order, take the newest 8 versions and install them
